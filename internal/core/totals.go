@@ -90,6 +90,11 @@ func shouldConsider(event *calendar.Event) bool {
 	if event.EventType == "outOfOffice" || event.EventType == "workingLocation" {
 		return false
 	}
+	for _, attendee := range event.Attendees {
+		if attendee.Self && attendee.ResponseStatus == "declined" {
+			return false
+		}
+	}
 	if event.Organizer != nil && event.Organizer.Self {
 		return true
 	}
