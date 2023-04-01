@@ -16,6 +16,7 @@
 package core
 
 import (
+	"regexp"
 	"testing"
 	"time"
 
@@ -26,31 +27,53 @@ import (
 
 func TestComputeTotals(t *testing.T) {
 	type args struct {
-		events *calendar.Events
+		events     *calendar.Events
+		categories []*Category
 	}
 
 	tests := []struct {
-		name string
-		args args
-		want map[civil.Date]time.Duration
+		name             string
+		args             args
+		wantTotals       map[civil.Date]time.Duration
+		wantCategories   map[CategoryName]time.Duration
+		wantUnrecognized []*calendar.Event
 	}{
 		{
 			name: "empty",
 			args: args{events: &calendar.Events{
 				Items: []*calendar.Event{},
 			}},
-			want: make(map[civil.Date]time.Duration),
+			wantTotals:       make(map[civil.Date]time.Duration),
+			wantCategories:   map[CategoryName]time.Duration{},
+			wantUnrecognized: []*calendar.Event{},
 		},
 		{
 			name: "separate events",
-			args: args{events: &calendar.Events{
-				Items: []*calendar.Event{
-					newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
-					newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:30:00+01:00"),
+			args: args{
+				events: &calendar.Events{
+					Items: []*calendar.Event{
+						newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
+						newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00", "m/s"),
+					},
 				},
-			}},
-			want: map[civil.Date]time.Duration{
-				{Year: 2023, Month: 03, Day: 25}: 60 * time.Minute,
+				categories: []*Category{
+					{
+						Name: "communications",
+						Patterns: []*regexp.Regexp{
+							regexp.MustCompile("m/s"),
+						},
+					},
+				},
+			},
+			wantTotals: map[civil.Date]time.Duration{
+				{Year: 2023, Month: 03, Day: 25}: 45 * time.Minute,
+			},
+			wantCategories: map[CategoryName]time.Duration{
+				"communications": 15 * time.Minute,
+				"":               30 * time.Minute,
+			},
+			wantUnrecognized: []*calendar.Event{
+				newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
 			},
 		},
 		{
@@ -74,7 +97,7 @@ func TestComputeTotals(t *testing.T) {
 					newEvent("2023-03-25T17:15:00+01:00", "2023-03-25T17:45:00+01:00"),
 				},
 			}},
-			want: map[civil.Date]time.Duration{
+			wantTotals: map[civil.Date]time.Duration{
 				{Year: 2023, Month: 03, Day: 25}: 3 * time.Hour,
 			},
 		},
@@ -85,21 +108,61 @@ func TestComputeTotals(t *testing.T) {
 					newEvent("2023-03-25T23:00:00+01:00", "2023-03-26T01:30:00+01:00"),
 				},
 			}},
-			want: map[civil.Date]time.Duration{
+			wantTotals: map[civil.Date]time.Duration{
 				{Year: 2023, Month: 03, Day: 25}: 60 * time.Minute,
 				{Year: 2023, Month: 03, Day: 26}: 90 * time.Minute,
 			},
 		},
+		{
+			name: "parallel events",
+			args: args{
+				events: &calendar.Events{
+					Items: []*calendar.Event{
+						newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "m/s"),
+						newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "rev PR"),
+					},
+				},
+				categories: []*Category{
+					{
+						Name: "communications",
+						Patterns: []*regexp.Regexp{
+							regexp.MustCompile("m/s"),
+						},
+					},
+					{
+						Name: "reviews",
+						Patterns: []*regexp.Regexp{
+							regexp.MustCompile("rev"),
+						},
+					},
+				},
+			},
+			wantTotals: map[civil.Date]time.Duration{
+				{Year: 2023, Month: 03, Day: 25}: 30 * time.Minute,
+			},
+			wantCategories: map[CategoryName]time.Duration{
+				"communications": 15 * time.Minute,
+				"reviews":        15 * time.Minute,
+			},
+			wantUnrecognized: []*calendar.Event{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, ComputeTotals(tt.args.events))
+			gotTotals, gotCategories, gotUnrecognized := ComputeTotals(tt.args.events, tt.args.categories)
+			assert.Equal(t, tt.wantTotals, gotTotals)
+			if tt.wantCategories != nil {
+				assert.Equal(t, tt.wantCategories, gotCategories)
+			}
+			if tt.wantUnrecognized != nil {
+				assert.Equal(t, tt.wantUnrecognized, gotUnrecognized)
+			}
 		})
 	}
 }
 
-func newEvent(startTime string, endTime string) *calendar.Event {
-	x := &calendar.Event{
+func newEvent(startTime string, endTime string, title ...string) *calendar.Event {
+	e := &calendar.Event{
 		Organizer: &calendar.EventOrganizer{Self: true},
 		Start: &calendar.EventDateTime{
 			DateTime: startTime,
@@ -108,5 +171,8 @@ func newEvent(startTime string, endTime string) *calendar.Event {
 			DateTime: endTime,
 		},
 	}
-	return x
+	if len(title) > 0 {
+		e.Summary = title[0]
+	}
+	return e
 }

@@ -38,10 +38,10 @@ type thing struct {
 	newDay *civil.Date
 }
 
-func ComputeTotals(events *calendar.Events) map[civil.Date]time.Duration {
+func ComputeTotals(events *calendar.Events, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
 	currentLocation := time.Now().Local().Location()
 	moments := computeTimeline(events, currentLocation)
-	return computeTotals(moments)
+	return categorizeTime(moments, categories)
 }
 
 func computeTimeline(events *calendar.Events, currentLocation *time.Location) *timeline {
@@ -67,13 +67,10 @@ func parseEvent(event *calendar.Event) (bool, time.Time, time.Time) {
 	if !shouldConsider(event) {
 		return false, time.Time{}, time.Time{}
 	}
-	startTime := event.Start.DateTime
-	if startTime == "" { // whole-day event
-		return false, time.Time{}, time.Time{}
-	}
-	evStart, err := time.Parse(time.RFC3339, startTime)
+	evStart, err := time.Parse(time.RFC3339, event.Start.DateTime)
 	if err != nil {
-		fmt.Printf("Failed to parse start time [%s] of event %v\n", startTime, event.Summary)
+		// TODO: Use a logging library
+		fmt.Printf("Failed to parse start time [%s] of event %v\n", event.Start.DateTime, event.Summary)
 		return false, time.Time{}, time.Time{}
 	}
 	evEnd, err := time.Parse(time.RFC3339, event.End.DateTime)
@@ -85,22 +82,11 @@ func parseEvent(event *calendar.Event) (bool, time.Time, time.Time) {
 	return true, evStart, evEnd
 }
 
-// stretchSpeedyMeetings delays endTime if needed.
-// Speedy meetings are a lie. They usually last until the full half hour anyway.
-func stretchSpeedyMeetings(evStart, evEnd time.Time) (time.Time, time.Time) {
-	d := evEnd.Sub(evStart)
-	if d == 50*time.Minute {
-		return evStart, evStart.Add(1 * time.Hour)
-	} else if d == 40*time.Minute {
-		return evStart, evStart.Add(45 * time.Minute)
-	} else if d == 25*time.Minute {
-		return evStart, evStart.Add(30 * time.Minute)
-	} else {
-		return evStart, evEnd
-	}
-}
-
 func shouldConsider(event *calendar.Event) bool {
+	if event.Start.DateTime == "" {
+		// full-day event
+		return false
+	}
 	if event.EventType == "outOfOffice" || event.EventType == "workingLocation" {
 		return false
 	}
@@ -119,41 +105,44 @@ func shouldConsider(event *calendar.Event) bool {
 	return false
 }
 
-func computeTotals(t *timeline) map[civil.Date]time.Duration {
+// stretchSpeedyMeetings delays endTime if needed.
+// Speedy meetings are a lie. They usually last until the full half hour anyway.
+func stretchSpeedyMeetings(evStart, evEnd time.Time) (time.Time, time.Time) {
+	d := evEnd.Sub(evStart)
+	if d == 50*time.Minute {
+		return evStart, evStart.Add(1 * time.Hour)
+	} else if d == 40*time.Minute {
+		return evStart, evStart.Add(45 * time.Minute)
+	} else if d == 25*time.Minute {
+		return evStart, evStart.Add(30 * time.Minute)
+	} else {
+		return evStart, evEnd
+	}
+}
+
+// categorizeTime returns three values. A map from civil date to time spent on it,
+// a map from category name to time spent on it, and a slice of unrecognized calendar events.
+func categorizeTime(t *timeline, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
 	momentTimes := t.sortedMoments()
-	totals := make(map[civil.Date]time.Duration)
-	inProgress := 0
-	blockStart := time.Time{}
-	currentDate := civil.DateOf(blockStart)
+	dayTotals := make(map[civil.Date]time.Duration)
+	categoryTotals := make(map[CategoryName]time.Duration)
+	unrecognized := []*calendar.Event{}
+	currentTasks := newSpan(categories)
+
 	for _, momentTime := range momentTimes {
-		inProgressChange := 0
+		currentTasks.checkpoint(dayTotals, categoryTotals, momentTime)
 		for _, thing := range t.thingsAt(momentTime) {
 			switch thing.what {
 			case midnight:
-				if inProgress > 0 {
-					totals[currentDate] += momentTime.Sub(blockStart)
-				}
-				currentDate = civil.DateOf(momentTime)
-				blockStart = momentTime
+				continue
 			case eventEnd:
-				inProgressChange -= 1
+				currentTasks.eventEnd(thing.event)
 			case eventStart:
-				inProgressChange += 1
+				if ok := currentTasks.eventStart(thing.event); !ok {
+					unrecognized = append(unrecognized, thing.event)
+				}
 			}
 		}
-		if inProgress == 0 && inProgressChange > 0 {
-			log.Printf("At %s block of %d starts", momentTime, inProgressChange)
-			blockStart = momentTime
-		} else if inProgress > 0 && inProgressChange == -inProgress {
-			log.Printf("At %s block of %d ends", momentTime, -inProgressChange)
-			totals[currentDate] += momentTime.Sub(blockStart)
-		} else {
-			log.Printf("At %s block of %d changes by %d", momentTime, inProgress, inProgressChange)
-		}
-		inProgress += inProgressChange
-		if inProgress < 0 {
-			log.Fatalf("At %s impossible number of in-progress events (%d)", momentTime, inProgress)
-		}
 	}
-	return totals
+	return dayTotals, categoryTotals, unrecognized
 }

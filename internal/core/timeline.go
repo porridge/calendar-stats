@@ -16,10 +16,10 @@
 package core
 
 import (
-	"sort"
 	"time"
 
 	"cloud.google.com/go/civil"
+	"github.com/porridge/calendar-tracker/internal/ordererd"
 	"google.golang.org/api/calendar/v3"
 )
 
@@ -40,24 +40,13 @@ func (t *timeline) addEvent(event *calendar.Event, start, end time.Time) {
 	t.moments[end] = append(t.moments[end], thing{what: eventEnd, event: event})
 }
 
-func (t *timeline) addMidnightAt(midnightTime time.Time, date civil.Date) {
-	t.moments[midnightTime] = append(t.moments[midnightTime], thing{what: midnight, newDay: &date})
-}
-
 func (t *timeline) addMidnight(date civil.Date) {
 	localMidnight := date.In(t.location)
-	t.addMidnightAt(localMidnight, date)
+	t.moments[localMidnight] = append(t.moments[localMidnight], thing{what: midnight, newDay: &date})
 }
 
 func (t *timeline) sortedMoments() []time.Time {
-	keys := make([]time.Time, len(t.moments))
-	i := 0
-	for k := range t.moments {
-		keys[i] = k
-		i++
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i].Before(keys[j]) })
-	return keys
+	return ordererd.KeysOfMap(t.moments, func(s []time.Time, i, j int) bool { return s[i].Before(s[j]) })
 }
 
 func (t *timeline) thingsAt(moment time.Time) []thing {

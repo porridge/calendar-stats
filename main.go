@@ -19,12 +19,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
-	"cloud.google.com/go/civil"
+	"github.com/porridge/calendar-tracker/internal/config"
 	"github.com/porridge/calendar-tracker/internal/core"
 	"github.com/porridge/calendar-tracker/internal/io"
+	"github.com/porridge/calendar-tracker/internal/ordererd"
+	"google.golang.org/api/calendar/v3"
 )
 
 var notice string = `
@@ -39,7 +40,6 @@ later version.
 
 Google Calendar is a trademark of Google LLC.
 `
-
 
 func main() {
 	source := flag.String("source", "primary", "Name of Google Calendar to read.")
@@ -61,34 +61,63 @@ func main() {
 		log.Fatalf("Failed to retrieve events: %s", err)
 	}
 
-	fmt.Println("Past events this week:")
+	categories, err := config.Read("config.yaml")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	if len(events.Items) == 0 {
 		fmt.Println("No events found.")
 	} else {
-		dayTotals := core.ComputeTotals(events)
-		days := sortedKeysOf(dayTotals)
+		dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories)
+		days := ordererd.KeysOfMap(dayTotals, ordererd.CivilDates)
+		var total time.Duration
+		if len(days) > 0 {
+			fmt.Println("Time spent per day:")
+		}
 		for _, day := range days {
-			value := newFunction(decimalOutput, dayTotals[day])
+			total += dayTotals[day]
+			value := formatDayTotal(decimalOutput, dayTotals[day])
 			fmt.Printf("%v: %s\n", day, value)
+		}
+		if len(categories) > 0 {
+			fmt.Println("Time spent per category:")
+		}
+		for _, category := range categories {
+			catName := category.Name
+			val := categoryTotals[catName]
+			fraction := (int64(val) * 100) / int64(total)
+			if catName == core.Uncategorized {
+				catName = "(uncategorized)"
+			}
+			fmt.Printf("%2d%% %s\n", fraction, catName)
+		}
+		if len(unrecognized) > 0 {
+			fmt.Println("Unrecognized:")
+		}
+		for _, un := range unrecognized {
+			fmt.Println(formatUnrecognizedEvent(un))
 		}
 	}
 }
 
-func newFunction(decimalOutput *bool, d time.Duration) string {
+func formatUnrecognizedEvent(event *calendar.Event) string {
+	if event.Start == nil || event.End == nil {
+		return "?"
+	}
+	start, err1 := time.Parse(time.RFC3339, event.Start.DateTime)
+	end, err2 := time.Parse(time.RFC3339, event.End.DateTime)
+	if err1 != nil || err2 != nil {
+		return "?"
+	}
+	return fmt.Sprintf("%s %10s  %s", event.Start.DateTime, end.Sub(start).String(), event.Summary)
+}
+
+func formatDayTotal(decimalOutput *bool, d time.Duration) string {
 	if *decimalOutput {
 		return fmt.Sprintf("%f", float64(d)/float64(time.Hour))
 	} else {
 		return d.String()
 	}
-}
-
-func sortedKeysOf[V any](aMap map[civil.Date]V) []civil.Date {
-	keys := make([]civil.Date, len(aMap))
-	i := 0
-	for k := range aMap {
-		keys[i] = k
-		i++
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i].Before(keys[j]) })
-	return keys
 }
