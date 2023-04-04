@@ -42,6 +42,7 @@ Google Calendar is a trademark of Google LLC.
 `
 
 func main() {
+	configFile := flag.String("config", "config.yaml", "Name of configuration file to read.")
 	source := flag.String("source", "primary", "Name of Google Calendar to read.")
 	weekCount := flag.Int("weeks", 0, "How many weeks before the current one to look at.")
 	cacheFileName := flag.String("cache", "", "If not empty, name of json file to use as event cache. "+
@@ -61,7 +62,7 @@ func main() {
 		log.Fatalf("Failed to retrieve events: %s", err)
 	}
 
-	categories, err := config.Read("config.yaml")
+	categories, err := config.Read(*configFile)
 	if err != nil {
 		fmt.Println(err)
 		return
