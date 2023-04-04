@@ -77,21 +77,9 @@ func readFromFile(s string) (*calendar.Events, error) {
 }
 
 func fetchFromCalendar(ctx context.Context, source string, weekCount int) (*calendar.Events, error) {
-	b, err := os.ReadFile("credentials.json")
+	srv, err := newCalendarService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read client secret file: %v", err)
-	}
-
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
-	}
-	client := auth.GetClient(ctx, config)
-
-	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve Calendar client: %v", err)
+		return nil, err
 	}
 
 	t := time.Now().Add(time.Hour * (-24) * 7 * time.Duration(weekCount))
@@ -111,4 +99,23 @@ func fetchFromCalendar(ctx context.Context, source string, weekCount int) (*cale
 		return nil, fmt.Errorf("incomplete list of events returned, pagination support not implemented yet")
 	}
 	return events, nil
+}
+
+func newCalendarService(ctx context.Context) (*calendar.Service, error) {
+	b, err := os.ReadFile("credentials.json")
+	if err != nil {
+		return nil, fmt.Errorf("unable to read client secret file: %v", err)
+	}
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, calendar.CalendarEventsScope)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
+	}
+	client := auth.GetClient(ctx, config)
+
+	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve Calendar client: %v", err)
+	}
+	return srv, nil
 }

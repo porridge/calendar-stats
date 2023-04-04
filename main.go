@@ -16,9 +16,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/porridge/calendar-tracker/internal/config"
@@ -49,6 +51,7 @@ func main() {
 		"If file does not exist, it will be created and fetched events will be stored there. "+
 		"Otherwise, events will be loaded from this file rather than fetched from Google Calendar.")
 	decimalOutput := flag.Bool("decimal-output", false, "If true, print totals as decimal fractions rather than XhYmZs Duration format.")
+	correctionsFileName := flag.String("corrections", "", "Name of file to: apply event summary corrections from at start, and save unrecognized events to at the end.")
 
 	origUsage := flag.Usage
 	flag.Usage = func() {
@@ -57,6 +60,10 @@ func main() {
 	}
 
 	flag.Parse()
+	err := maybeApplyCorrections(*source, *correctionsFileName)
+	if err != nil {
+		log.Fatalf("Failed to apply corrections: %s", err)
+	}
 	events, err := io.GetEvents(*source, *weekCount, *cacheFileName)
 	if err != nil {
 		log.Fatalf("Failed to retrieve events: %s", err)
@@ -100,7 +107,36 @@ func main() {
 		for _, un := range unrecognized {
 			fmt.Println(formatUnrecognizedEvent(un))
 		}
+		if *correctionsFileName != "" {
+			err = io.SaveUnrecognized(*correctionsFileName, unrecognized)
+			if err != nil {
+				log.Fatalf("Failed to save unrecognized events: %s", err)
+			}
+		}
 	}
+}
+
+func maybeApplyCorrections(source, correctionsFileName string) error {
+	if correctionsFileName == "" {
+		return nil
+	}
+	corrections, err := io.LoadCorrections(correctionsFileName)
+	if os.IsNotExist(err) || len(corrections.Corrections) == 0 {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	log.Printf("Updating summary of %d events...\n", len(corrections.Corrections))
+	for _, correction := range corrections.Corrections {
+		err = io.MaybeUpdateSummary(ctx, source, correction.Id, correction.Summary)
+		if err != nil {
+			return fmt.Errorf("failed to update summary of event %q: %w", correction.Id, err)
+		}
+	}
+	log.Println("Summaries updated.")
+	return nil
 }
 
 func formatUnrecognizedEvent(event *calendar.Event) string {
