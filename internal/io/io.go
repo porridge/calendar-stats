@@ -91,6 +91,7 @@ func fetchFromCalendar(ctx context.Context, source string, weekCount int) (*cale
 		TimeMax(time.Now().Format(time.RFC3339)).
 		// TODO: put some padding in time min/max to include
 		// events which span week boundaries.
+		MaxResults(2500). // maximum page size according to docs
 		Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve user's events: %v", err)
