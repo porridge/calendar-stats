@@ -85,21 +85,28 @@ func fetchFromCalendar(ctx context.Context, source string, weekCount int) ([]*ca
 	t := time.Now().Add(time.Hour * (-24) * 7 * time.Duration(weekCount))
 	year, week := t.ISOWeek()
 	weekStart := isoweek.StartTime(year, week, time.Local)
-	events, err := srv.Events.List(source).
-		SingleEvents(true).
-		TimeMin(weekStart.Format(time.RFC3339)).
-		TimeMax(time.Now().Format(time.RFC3339)).
-		// TODO: put some padding in time min/max to include
-		// events which span week boundaries.
-		MaxResults(2500). // maximum page size according to docs
-		Do()
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve user's events: %v", err)
+	allEvents := []*calendar.Event{}
+	var pageToken string
+	for {
+		events, err := srv.Events.List(source).
+			SingleEvents(true).
+			TimeMin(weekStart.Format(time.RFC3339)).
+			TimeMax(time.Now().Format(time.RFC3339)).
+			// TODO: put some padding in time min/max to include
+			// events which span week boundaries.
+			MaxResults(2500). // maximum page size according to docs
+			PageToken(pageToken).
+			Do()
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve events from calendar %q: %v", source, err)
+		}
+		allEvents = append(allEvents, events.Items...)
+		if events.NextPageToken == "" {
+			break
+		}
+		pageToken = events.NextPageToken
 	}
-	if events.NextPageToken != "" {
-		return nil, fmt.Errorf("incomplete list of events returned, pagination support not implemented yet")
-	}
-	return events.Items, nil
+	return allEvents, nil
 }
 
 func newCalendarService(ctx context.Context) (*calendar.Service, error) {
