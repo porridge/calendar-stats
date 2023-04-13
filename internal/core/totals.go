@@ -38,16 +38,16 @@ type thing struct {
 	newDay *civil.Date
 }
 
-func ComputeTotals(events *calendar.Events, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
+func ComputeTotals(events []*calendar.Event, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
 	currentLocation := time.Now().Local().Location()
 	moments := computeTimeline(events, currentLocation)
 	return categorizeTime(moments, categories)
 }
 
-func computeTimeline(events *calendar.Events, currentLocation *time.Location) *timeline {
+func computeTimeline(events []*calendar.Event, currentLocation *time.Location) *timeline {
 	t := newTimeline(currentLocation)
 
-	for _, event := range events.Items {
+	for _, event := range events {
 		isAccepted, evStart, evEnd := parseEvent(event)
 		if !isAccepted {
 			continue

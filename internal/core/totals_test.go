@@ -27,7 +27,7 @@ import (
 
 func TestComputeTotals(t *testing.T) {
 	type args struct {
-		events     *calendar.Events
+		events     []*calendar.Event
 		categories []*Category
 	}
 
@@ -39,10 +39,8 @@ func TestComputeTotals(t *testing.T) {
 		wantUnrecognized []*calendar.Event
 	}{
 		{
-			name: "empty",
-			args: args{events: &calendar.Events{
-				Items: []*calendar.Event{},
-			}},
+			name:             "empty",
+			args:             args{events: []*calendar.Event{}},
 			wantTotals:       make(map[civil.Date]time.Duration),
 			wantCategories:   map[CategoryName]time.Duration{},
 			wantUnrecognized: []*calendar.Event{},
@@ -50,11 +48,9 @@ func TestComputeTotals(t *testing.T) {
 		{
 			name: "separate events",
 			args: args{
-				events: &calendar.Events{
-					Items: []*calendar.Event{
-						newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
-						newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00", "m/s"),
-					},
+				events: []*calendar.Event{
+					newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
+					newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00", "m/s"),
 				},
 				categories: []*Category{
 					{
@@ -78,36 +74,34 @@ func TestComputeTotals(t *testing.T) {
 		},
 		{
 			name: "overlapping events",
-			args: args{events: &calendar.Events{
-				Items: []*calendar.Event{
-					// aligned at end, 30m total
-					newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
-					newEvent("2023-03-25T13:15:00+01:00", "2023-03-25T13:30:00+01:00"),
-					// aligned at beginning, 30m total
-					newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:30:00+01:00"),
-					newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00"),
-					// aligned at both ends, 30m total
-					newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
-					newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
-					// one completely covered, 45m total
-					newEvent("2023-03-25T16:15:00+01:00", "2023-03-25T16:30:00+01:00"),
-					newEvent("2023-03-25T16:00:00+01:00", "2023-03-25T16:45:00+01:00"),
-					// partially overlapping, 45m total
-					newEvent("2023-03-25T17:00:00+01:00", "2023-03-25T17:30:00+01:00"),
-					newEvent("2023-03-25T17:15:00+01:00", "2023-03-25T17:45:00+01:00"),
-				},
-			}},
+			args: args{events: []*calendar.Event{
+				// aligned at end, 30m total
+				newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
+				newEvent("2023-03-25T13:15:00+01:00", "2023-03-25T13:30:00+01:00"),
+				// aligned at beginning, 30m total
+				newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:30:00+01:00"),
+				newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00"),
+				// aligned at both ends, 30m total
+				newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
+				newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
+				// one completely covered, 45m total
+				newEvent("2023-03-25T16:15:00+01:00", "2023-03-25T16:30:00+01:00"),
+				newEvent("2023-03-25T16:00:00+01:00", "2023-03-25T16:45:00+01:00"),
+				// partially overlapping, 45m total
+				newEvent("2023-03-25T17:00:00+01:00", "2023-03-25T17:30:00+01:00"),
+				newEvent("2023-03-25T17:15:00+01:00", "2023-03-25T17:45:00+01:00"),
+			},
+			},
 			wantTotals: map[civil.Date]time.Duration{
 				{Year: 2023, Month: 03, Day: 25}: 3 * time.Hour,
 			},
 		},
 		{
 			name: "event spanning days",
-			args: args{events: &calendar.Events{
-				Items: []*calendar.Event{
-					newEvent("2023-03-25T23:00:00+01:00", "2023-03-26T01:30:00+01:00"),
-				},
-			}},
+			args: args{events: []*calendar.Event{
+				newEvent("2023-03-25T23:00:00+01:00", "2023-03-26T01:30:00+01:00"),
+			},
+			},
 			wantTotals: map[civil.Date]time.Duration{
 				{Year: 2023, Month: 03, Day: 25}: 60 * time.Minute,
 				{Year: 2023, Month: 03, Day: 26}: 90 * time.Minute,
@@ -116,11 +110,9 @@ func TestComputeTotals(t *testing.T) {
 		{
 			name: "parallel events",
 			args: args{
-				events: &calendar.Events{
-					Items: []*calendar.Event{
-						newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "m/s"),
-						newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "rev PR"),
-					},
+				events: []*calendar.Event{
+					newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "m/s"),
+					newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "rev PR"),
 				},
 				categories: []*Category{
 					{

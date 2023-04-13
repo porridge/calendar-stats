@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func GetEvents(source string, weekCount int, cacheFilename string) (*calendar.Events, error) {
+func GetEvents(source string, weekCount int, cacheFilename string) ([]*calendar.Event, error) {
 	ctx := context.Background()
 	if cacheFilename != "" {
 		events, err := readFromFile(cacheFilename)
@@ -55,7 +55,7 @@ func GetEvents(source string, weekCount int, cacheFilename string) (*calendar.Ev
 	}
 }
 
-func writeToFile(s string, events *calendar.Events) error {
+func writeToFile(s string, events []*calendar.Event) error {
 	eventsJson, err := json.Marshal(events)
 	if err != nil {
 		return err
@@ -63,20 +63,20 @@ func writeToFile(s string, events *calendar.Events) error {
 	return os.WriteFile(s, eventsJson, os.ModePerm)
 }
 
-func readFromFile(s string) (*calendar.Events, error) {
-	events := &calendar.Events{}
+func readFromFile(s string) ([]*calendar.Event, error) {
+	events := []*calendar.Event{}
 	eventBytes, err := os.ReadFile(s)
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal(eventBytes, events)
+	err = json.Unmarshal(eventBytes, &events)
 	if err != nil {
 		return nil, err
 	}
 	return events, nil
 }
 
-func fetchFromCalendar(ctx context.Context, source string, weekCount int) (*calendar.Events, error) {
+func fetchFromCalendar(ctx context.Context, source string, weekCount int) ([]*calendar.Event, error) {
 	srv, err := newCalendarService(ctx)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func fetchFromCalendar(ctx context.Context, source string, weekCount int) (*cale
 	if events.NextPageToken != "" {
 		return nil, fmt.Errorf("incomplete list of events returned, pagination support not implemented yet")
 	}
-	return events, nil
+	return events.Items, nil
 }
 
 func newCalendarService(ctx context.Context) (*calendar.Service, error) {

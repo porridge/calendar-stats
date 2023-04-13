@@ -75,7 +75,7 @@ func main() {
 		return
 	}
 
-	if len(events.Items) == 0 {
+	if len(events) == 0 {
 		fmt.Println("No events found.")
 	} else {
 		dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories)
