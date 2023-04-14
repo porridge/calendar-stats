@@ -95,11 +95,11 @@ func main() {
 		for _, category := range categories {
 			catName := category.Name
 			val := categoryTotals[catName]
-			fraction := (int64(val) * 100) / int64(total)
+			fraction := (float64(val) / float64(total)) * 100
 			if catName == core.Uncategorized {
 				catName = "(uncategorized)"
 			}
-			fmt.Printf("%2d%% %s\n", fraction, catName)
+			fmt.Printf("%4.1f%% %s\n", fraction, catName)
 		}
 		if len(unrecognized) > 0 {
 			fmt.Println("Unrecognized:")
