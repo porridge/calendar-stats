@@ -15,14 +15,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
-	"time"
 
+	"github.com/xyproto/randomstring"
 	"golang.org/x/oauth2"
 )
 
 func getTokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	ch := make(chan string)
-	randState := fmt.Sprintf("st%d", time.Now().UnixNano())
+	randState := randomstring.CookieFriendlyString(32)
 	ts := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/favicon.ico" {
 			http.Error(rw, "", 404)
