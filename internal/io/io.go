@@ -25,19 +25,18 @@ import (
 
 	"github.com/porridge/calendar-tracker/internal/auth"
 
-	"github.com/snabb/isoweek"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 )
 
-func GetEvents(source string, weekCount int, cacheFilename string) ([]*calendar.Event, error) {
+func GetEvents(source string, start, end time.Time, cacheFilename string) ([]*calendar.Event, error) {
 	ctx := context.Background()
 	if cacheFilename != "" {
 		events, err := readFromFile(cacheFilename)
 		if err != nil {
 			log.Printf("Failed to read events from %q, fetching them and saving first: %s", cacheFilename, err)
-			events, err = fetchFromCalendar(ctx, source, weekCount)
+			events, err = fetchFromCalendar(ctx, source, start, end)
 			if err != nil {
 				return nil, fmt.Errorf("unable to fetch events from calendar: %s", err)
 			}
@@ -47,7 +46,7 @@ func GetEvents(source string, weekCount int, cacheFilename string) ([]*calendar.
 		}
 		return events, nil
 	} else {
-		events, err := fetchFromCalendar(ctx, source, weekCount)
+		events, err := fetchFromCalendar(ctx, source, start, end)
 		if err != nil {
 			return nil, fmt.Errorf("unable to fetch events from calendar: %s", err)
 		}
@@ -76,22 +75,19 @@ func readFromFile(s string) ([]*calendar.Event, error) {
 	return events, nil
 }
 
-func fetchFromCalendar(ctx context.Context, source string, weekCount int) ([]*calendar.Event, error) {
+func fetchFromCalendar(ctx context.Context, source string, start, end time.Time) ([]*calendar.Event, error) {
 	srv, err := newCalendarService(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	t := time.Now().Add(time.Hour * (-24) * 7 * time.Duration(weekCount))
-	year, week := t.ISOWeek()
-	weekStart := isoweek.StartTime(year, week, time.Local)
 	allEvents := []*calendar.Event{}
 	var pageToken string
 	for {
 		events, err := srv.Events.List(source).
 			SingleEvents(true).
-			TimeMin(weekStart.Format(time.RFC3339)).
-			TimeMax(time.Now().Format(time.RFC3339)).
+			TimeMin(start.Format(time.RFC3339)).
+			TimeMax(end.Format(time.RFC3339)).
 			// TODO: put some padding in time min/max to include
 			// events which span week boundaries.
 			MaxResults(2500). // maximum page size according to docs

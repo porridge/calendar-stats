@@ -27,6 +27,7 @@ import (
 	"github.com/porridge/calendar-tracker/internal/core"
 	"github.com/porridge/calendar-tracker/internal/io"
 	"github.com/porridge/calendar-tracker/internal/ordererd"
+	"github.com/snabb/isoweek"
 	"google.golang.org/api/calendar/v3"
 )
 
@@ -64,7 +65,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to apply corrections: %s", err)
 	}
-	events, err := io.GetEvents(*source, *weekCount, *cacheFileName)
+	start, end := getTimeBoundaries(*weekCount)
+	events, err := io.GetEvents(*source, start, end, *cacheFileName)
 	if err != nil {
 		log.Fatalf("Failed to retrieve events: %s", err)
 	}
@@ -114,6 +116,14 @@ func main() {
 			}
 		}
 	}
+}
+
+func getTimeBoundaries(weekCount int) (time.Time, time.Time) {
+	now := time.Now()
+	t := now.Add(time.Hour * (-24) * 7 * time.Duration(weekCount))
+	year, week := t.ISOWeek()
+	weekStart := isoweek.StartTime(year, week, time.Local)
+	return weekStart, now
 }
 
 func maybeApplyCorrections(source, correctionsFileName string) error {
