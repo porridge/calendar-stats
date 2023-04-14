@@ -39,8 +39,7 @@ type thing struct {
 }
 
 func ComputeTotals(events []*calendar.Event, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
-	currentLocation := time.Now().Local().Location()
-	moments := computeTimeline(events, currentLocation)
+	moments := computeTimeline(events, time.Local)
 	return categorizeTime(moments, categories)
 }
 
