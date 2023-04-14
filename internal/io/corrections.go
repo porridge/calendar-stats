@@ -28,8 +28,9 @@ type Corrections struct {
 }
 
 type Correction struct {
-	Id      string `json:"id"`
-	Summary string `json:"summary"`
+	Id        string `yaml:"id"`
+	Summary   string `yaml:"summary"`
+	Organizer string `yaml:"organizer"`
 }
 
 func LoadCorrections(fileName string) (*Corrections, error) {
@@ -57,9 +58,14 @@ func MaybeUpdateSummary(ctx context.Context, source, id, summary string) error {
 func SaveUnrecognized(correctionsFileName string, unrecognized []*calendar.Event) error {
 	un := &Corrections{}
 	for _, e := range unrecognized {
+		organizer := e.Organizer.DisplayName
+		if organizer == "" {
+			organizer = e.Organizer.Email
+		}
 		un.Corrections = append(un.Corrections, &Correction{
-			Id:      e.Id,
-			Summary: e.Summary,
+			Id:        e.Id,
+			Summary:   e.Summary,
+			Organizer: organizer,
 		})
 	}
 	data, err := yaml.Marshal(un)
