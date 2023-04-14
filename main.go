@@ -121,11 +121,14 @@ func maybeApplyCorrections(source, correctionsFileName string) error {
 		return nil
 	}
 	corrections, err := io.LoadCorrections(correctionsFileName)
-	if os.IsNotExist(err) || len(corrections.Corrections) == 0 {
+	if os.IsNotExist(err) {
 		return nil
 	}
 	if err != nil {
 		return err
+	}
+	if len(corrections.Corrections) == 0 {
+		return nil
 	}
 	ctx := context.Background()
 	log.Printf("Updating summary of %d events...\n", len(corrections.Corrections))
