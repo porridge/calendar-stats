@@ -30,8 +30,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func GetEvents(source string, start, end time.Time, cacheFilename string) ([]*calendar.Event, error) {
-	ctx := context.Background()
+func GetEvents(ctx context.Context, source string, start, end time.Time, cacheFilename string) ([]*calendar.Event, error) {
 	if cacheFilename != "" {
 		events, err := readFromFile(cacheFilename)
 		if err != nil {

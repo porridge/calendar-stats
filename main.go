@@ -60,71 +60,71 @@ func main() {
 	decimalOutput := flag.Bool("decimal-output", false, "If true, print daily totals as decimal fractions rather than XhYmZs Duration format.")
 	correctionsFileName := flag.String("corrections", "", "Name of file to: apply event summary corrections from at start, and save unrecognized events to at the end.")
 
-	origUsage := flag.Usage
-	flag.Usage = func() {
-		origUsage()
-		fmt.Fprint(flag.CommandLine.Output(), notice)
-	}
-
-	flag.Parse()
+	flags.Parse(notice)
 
 	if *weekCount != 0 {
 		start = getWeekStart(*weekCount, end)
 	}
-	err := maybeApplyCorrections(*source, *correctionsFileName)
+
+	ctx := context.Background()
+	err := maybeApplyCorrections(ctx, *source, *correctionsFileName)
 	if err != nil {
 		log.Fatalf("Failed to apply corrections: %s", err)
 	}
-	events, err := io.GetEvents(*source, start, end, *cacheFileName)
+	events, err := io.GetEvents(ctx, *source, start, end, *cacheFileName)
 	if err != nil {
 		log.Fatalf("Failed to retrieve events: %s", err)
 	}
-
-	categories, err := config.Read(*configFile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	if len(events) == 0 {
 		fmt.Println("No events found.")
-	} else {
-		dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories)
-		days := ordererd.KeysOfMap(dayTotals, ordererd.CivilDates)
-		var total time.Duration
-		if len(days) > 0 {
-			fmt.Println("Time spent per day:")
+		return
+	}
+	categories, err := config.Read(*configFile)
+	if err != nil {
+		log.Fatalf("Could not read config file %q: %s", *configFile, err)
+	}
+
+	unrecognized := analyzeAndPrint(events, categories, *decimalOutput)
+
+	if *correctionsFileName != "" {
+		err = io.SaveUnrecognized(*correctionsFileName, unrecognized)
+		if err != nil {
+			log.Fatalf("Failed to save unrecognized events: %s", err)
 		}
-		for _, day := range days {
-			total += dayTotals[day]
-			value := formatDayTotal(decimalOutput, dayTotals[day])
-			fmt.Printf("%v: %s\n", day, value)
+	}
+}
+
+func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, decimalOutput bool) []*calendar.Event {
+	dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories)
+	days := ordererd.KeysOfMap(dayTotals, ordererd.CivilDates)
+	var total time.Duration
+	if len(days) > 0 {
+		fmt.Println("Time spent per day:")
+	}
+	for _, day := range days {
+		total += dayTotals[day]
+		value := formatDayTotal(decimalOutput, dayTotals[day])
+		fmt.Printf("%v: %s\n", day, value)
+	}
+	if len(categories) > 0 {
+		fmt.Println("Time spent per category:")
+	}
+	for _, category := range categories {
+		catName := category.Name
+		val := categoryTotals[catName]
+		fraction := (float64(val) / float64(total)) * 100
+		if catName == core.Uncategorized {
+			catName = "(uncategorized)"
 		}
-		if len(categories) > 0 {
-			fmt.Println("Time spent per category:")
-		}
-		for _, category := range categories {
-			catName := category.Name
-			val := categoryTotals[catName]
-			fraction := (float64(val) / float64(total)) * 100
-			if catName == core.Uncategorized {
-				catName = "(uncategorized)"
-			}
-			fmt.Printf("%4.1f%% %s\n", fraction, catName)
-		}
-		if len(unrecognized) > 0 {
-			fmt.Println("Unrecognized:")
-		}
+		fmt.Printf("%4.1f%% %s\n", fraction, catName)
+	}
+	if len(unrecognized) > 0 {
+		fmt.Println("Unrecognized:")
 		for _, un := range unrecognized {
 			fmt.Println(formatUnrecognizedEvent(un))
 		}
-		if *correctionsFileName != "" {
-			err = io.SaveUnrecognized(*correctionsFileName, unrecognized)
-			if err != nil {
-				log.Fatalf("Failed to save unrecognized events: %s", err)
-			}
-		}
 	}
+	return unrecognized
 }
 
 // getWeekStart returns the time of beginning of week that is weekCount weeks before end.
@@ -134,7 +134,7 @@ func getWeekStart(weekCount int, end time.Time) time.Time {
 	return isoweek.StartTime(year, week, time.Local)
 }
 
-func maybeApplyCorrections(source, correctionsFileName string) error {
+func maybeApplyCorrections(ctx context.Context, source, correctionsFileName string) error {
 	if correctionsFileName == "" {
 		return nil
 	}
@@ -148,7 +148,6 @@ func maybeApplyCorrections(source, correctionsFileName string) error {
 	if len(corrections.Corrections) == 0 {
 		return nil
 	}
-	ctx := context.Background()
 	log.Printf("Updating summary of %d events...\n", len(corrections.Corrections))
 	for _, correction := range corrections.Corrections {
 		err = io.MaybeUpdateSummary(ctx, source, correction.Id, correction.Summary)
@@ -172,8 +171,8 @@ func formatUnrecognizedEvent(event *calendar.Event) string {
 	return fmt.Sprintf("%s %10s  %s", event.Start.DateTime, end.Sub(start).String(), event.Summary)
 }
 
-func formatDayTotal(decimalOutput *bool, d time.Duration) string {
-	if *decimalOutput {
+func formatDayTotal(decimalOutput bool, d time.Duration) string {
+	if decimalOutput {
 		return fmt.Sprintf("%f", float64(d)/float64(time.Hour))
 	} else {
 		return d.String()
