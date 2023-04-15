@@ -25,6 +25,7 @@ import (
 
 	"github.com/porridge/calendar-tracker/internal/config"
 	"github.com/porridge/calendar-tracker/internal/core"
+	"github.com/porridge/calendar-tracker/internal/flags"
 	"github.com/porridge/calendar-tracker/internal/io"
 	"github.com/porridge/calendar-tracker/internal/ordererd"
 	"github.com/snabb/isoweek"
@@ -47,7 +48,12 @@ Google Calendar is a trademark of Google LLC.
 func main() {
 	configFile := flag.String("config", "config.yaml", "Name of configuration file to read.")
 	source := flag.String("source", "primary", "Name of Google Calendar to read.")
-	weekCount := flag.Int("weeks", 0, "How many weeks before the current one to look at.")
+	weekCount := flag.Int("weeks", 0, "Shortcut way to set -start to beginning of week this many weeks before the current one. If set to non-zero value, takes precedecnce over -start.")
+	end := time.Now()
+	start := getWeekStart(0, end)
+	flag.Var(flags.TimeValue(&start), "start", "Start time. Defaults to beginning of current week. Use any unambiguous format supported by https://github.com/araddon/dateparse")
+	flag.Var(flags.TimeValue(&end), "end", "End time. Defaults to now. Use any unambiguous format supported by https://github.com/araddon/dateparse")
+
 	cacheFileName := flag.String("cache", "", "If not empty, name of json file to use as event cache. "+
 		"If file does not exist, it will be created and fetched events will be stored there. "+
 		"Otherwise, events will be loaded from this file rather than fetched from Google Calendar.")
@@ -61,11 +67,14 @@ func main() {
 	}
 
 	flag.Parse()
+
+	if *weekCount != 0 {
+		start = getWeekStart(*weekCount, end)
+	}
 	err := maybeApplyCorrections(*source, *correctionsFileName)
 	if err != nil {
 		log.Fatalf("Failed to apply corrections: %s", err)
 	}
-	start, end := getTimeBoundaries(*weekCount)
 	events, err := io.GetEvents(*source, start, end, *cacheFileName)
 	if err != nil {
 		log.Fatalf("Failed to retrieve events: %s", err)
@@ -118,12 +127,11 @@ func main() {
 	}
 }
 
-func getTimeBoundaries(weekCount int) (time.Time, time.Time) {
-	now := time.Now()
-	t := now.Add(time.Hour * (-24) * 7 * time.Duration(weekCount))
-	year, week := t.ISOWeek()
-	weekStart := isoweek.StartTime(year, week, time.Local)
-	return weekStart, now
+// getWeekStart returns the time of beginning of week that is weekCount weeks before end.
+func getWeekStart(weekCount int, end time.Time) time.Time {
+	weekCountDuration := time.Hour * 24 * 7 * time.Duration(weekCount)
+	year, week := end.Add(-weekCountDuration).ISOWeek()
+	return isoweek.StartTime(year, week, time.Local)
 }
 
 func maybeApplyCorrections(source, correctionsFileName string) error {
