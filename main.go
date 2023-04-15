@@ -80,7 +80,9 @@ func main() {
 		return
 	}
 	categories, err := config.Read(*configFile)
-	if err != nil {
+	if os.IsNotExist(err) {
+		log.Printf("Could not read config file %q, cannot categorize events: %s", *configFile, err)
+	} else if err != nil {
 		log.Fatalf("Could not read config file %q: %s", *configFile, err)
 	}
 
@@ -106,9 +108,10 @@ func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, deci
 		value := formatDayTotal(decimalOutput, dayTotals[day])
 		fmt.Printf("%v: %s\n", day, value)
 	}
-	if len(categories) > 0 {
-		fmt.Println("Time spent per category:")
+	if len(categories) == 0 {
+		return unrecognized
 	}
+	fmt.Println("Time spent per category:")
 	for _, category := range categories {
 		catName := category.Name
 		val := categoryTotals[catName]
