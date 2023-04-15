@@ -4,7 +4,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/porridge/calendar-tracker/internal/core"
+	"github.com/porridge/calendar-stats/internal/core"
 	"gopkg.in/yaml.v3"
 )
 

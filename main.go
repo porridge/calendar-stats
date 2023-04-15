@@ -1,4 +1,4 @@
-// calendar-tracker, a program to compute statistics from Google calendars.
+// calendar-stats, a program to compute statistics from Google calendars.
 // Copyright (C) 2023 Marcin Owsiany <marcin@owsiany.pl>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -23,11 +23,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/porridge/calendar-tracker/internal/config"
-	"github.com/porridge/calendar-tracker/internal/core"
-	"github.com/porridge/calendar-tracker/internal/flags"
-	"github.com/porridge/calendar-tracker/internal/io"
-	"github.com/porridge/calendar-tracker/internal/ordererd"
+	"github.com/porridge/calendar-stats/internal/config"
+	"github.com/porridge/calendar-stats/internal/core"
+	"github.com/porridge/calendar-stats/internal/flags"
+	"github.com/porridge/calendar-stats/internal/io"
+	"github.com/porridge/calendar-stats/internal/ordererd"
 	"github.com/snabb/isoweek"
 	"google.golang.org/api/calendar/v3"
 )
