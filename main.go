@@ -57,7 +57,7 @@ func main() {
 	cacheFileName := flag.String("cache", "", "If not empty, name of json file to use as event cache. "+
 		"If file does not exist, it will be created and fetched events will be stored there. "+
 		"Otherwise, events will be loaded from this file rather than fetched from Google Calendar.")
-	decimalOutput := flag.Bool("decimal-output", false, "If true, print totals as decimal fractions rather than XhYmZs Duration format.")
+	decimalOutput := flag.Bool("decimal-output", false, "If true, print daily totals as decimal fractions rather than XhYmZs Duration format.")
 	correctionsFileName := flag.String("corrections", "", "Name of file to: apply event summary corrections from at start, and save unrecognized events to at the end.")
 
 	origUsage := flag.Usage
