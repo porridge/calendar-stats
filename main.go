@@ -97,7 +97,7 @@ func main() {
 }
 
 func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, decimalOutput bool) []*calendar.Event {
-	dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories)
+	dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories, time.Local)
 	days := ordererd.KeysOfMap(dayTotals, ordererd.CivilDates)
 	var total time.Duration
 	if len(days) > 0 {

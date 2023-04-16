@@ -49,8 +49,8 @@ func TestComputeTotals(t *testing.T) {
 			name: "separate events",
 			args: args{
 				events: []*calendar.Event{
-					newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
-					newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00", "m/s"),
+					newEvent("2023-03-25T13:00:00+00:00", "2023-03-25T13:30:00+00:00"),
+					newEvent("2023-03-25T14:00:00+00:00", "2023-03-25T14:15:00+00:00", "m/s"),
 				},
 				categories: []*Category{
 					{
@@ -69,27 +69,27 @@ func TestComputeTotals(t *testing.T) {
 				"":               30 * time.Minute,
 			},
 			wantUnrecognized: []*calendar.Event{
-				newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
+				newEvent("2023-03-25T13:00:00+00:00", "2023-03-25T13:30:00+00:00"),
 			},
 		},
 		{
 			name: "overlapping events",
 			args: args{events: []*calendar.Event{
 				// aligned at end, 30m total
-				newEvent("2023-03-25T13:00:00+01:00", "2023-03-25T13:30:00+01:00"),
-				newEvent("2023-03-25T13:15:00+01:00", "2023-03-25T13:30:00+01:00"),
+				newEvent("2023-03-25T13:00:00+00:00", "2023-03-25T13:30:00+00:00"),
+				newEvent("2023-03-25T13:15:00+00:00", "2023-03-25T13:30:00+00:00"),
 				// aligned at beginning, 30m total
-				newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:30:00+01:00"),
-				newEvent("2023-03-25T14:00:00+01:00", "2023-03-25T14:15:00+01:00"),
+				newEvent("2023-03-25T14:00:00+00:00", "2023-03-25T14:30:00+00:00"),
+				newEvent("2023-03-25T14:00:00+00:00", "2023-03-25T14:15:00+00:00"),
 				// aligned at both ends, 30m total
-				newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
-				newEvent("2023-03-25T15:00:00+01:00", "2023-03-25T15:30:00+01:00"),
+				newEvent("2023-03-25T15:00:00+00:00", "2023-03-25T15:30:00+00:00"),
+				newEvent("2023-03-25T15:00:00+00:00", "2023-03-25T15:30:00+00:00"),
 				// one completely covered, 45m total
-				newEvent("2023-03-25T16:15:00+01:00", "2023-03-25T16:30:00+01:00"),
-				newEvent("2023-03-25T16:00:00+01:00", "2023-03-25T16:45:00+01:00"),
+				newEvent("2023-03-25T16:15:00+00:00", "2023-03-25T16:30:00+00:00"),
+				newEvent("2023-03-25T16:00:00+00:00", "2023-03-25T16:45:00+00:00"),
 				// partially overlapping, 45m total
-				newEvent("2023-03-25T17:00:00+01:00", "2023-03-25T17:30:00+01:00"),
-				newEvent("2023-03-25T17:15:00+01:00", "2023-03-25T17:45:00+01:00"),
+				newEvent("2023-03-25T17:00:00+00:00", "2023-03-25T17:30:00+00:00"),
+				newEvent("2023-03-25T17:15:00+00:00", "2023-03-25T17:45:00+00:00"),
 			},
 			},
 			wantTotals: map[civil.Date]time.Duration{
@@ -99,7 +99,7 @@ func TestComputeTotals(t *testing.T) {
 		{
 			name: "event spanning days",
 			args: args{events: []*calendar.Event{
-				newEvent("2023-03-25T23:00:00+01:00", "2023-03-26T01:30:00+01:00"),
+				newEvent("2023-03-25T23:00:00+00:00", "2023-03-26T01:30:00+00:00"),
 			},
 			},
 			wantTotals: map[civil.Date]time.Duration{
@@ -111,8 +111,8 @@ func TestComputeTotals(t *testing.T) {
 			name: "parallel events",
 			args: args{
 				events: []*calendar.Event{
-					newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "m/s"),
-					newEvent("2023-03-25T11:00:00+01:00", "2023-03-25T11:30:00+01:00", "rev PR"),
+					newEvent("2023-03-25T11:00:00+00:00", "2023-03-25T11:30:00+00:00", "m/s"),
+					newEvent("2023-03-25T11:00:00+00:00", "2023-03-25T11:30:00+00:00", "rev PR"),
 				},
 				categories: []*Category{
 					{
@@ -141,7 +141,7 @@ func TestComputeTotals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTotals, gotCategories, gotUnrecognized := ComputeTotals(tt.args.events, tt.args.categories)
+			gotTotals, gotCategories, gotUnrecognized := ComputeTotals(tt.args.events, tt.args.categories, time.UTC)
 			assert.Equal(t, tt.wantTotals, gotTotals)
 			if tt.wantCategories != nil {
 				assert.Equal(t, tt.wantCategories, gotCategories)

@@ -38,8 +38,8 @@ type thing struct {
 	newDay *civil.Date
 }
 
-func ComputeTotals(events []*calendar.Event, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
-	moments := computeTimeline(events, time.Local)
+func ComputeTotals(events []*calendar.Event, categories []*Category, location *time.Location) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
+	moments := computeTimeline(events, location)
 	return categorizeTime(moments, categories)
 }
 
