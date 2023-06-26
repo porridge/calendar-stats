@@ -35,7 +35,7 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.110.2
+	cloud.google.com/go v0.110.3
 	cloud.google.com/go/compute v1.19.3 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
@@ -43,7 +43,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.4 // indirect
-	github.com/googleapis/gax-go/v2 v2.10.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
 	github.com/stretchr/testify v1.8.4
 	github.com/xyproto/randomstring v1.0.5
 	go.opencensus.io v0.24.0 // indirect
