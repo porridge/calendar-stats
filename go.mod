@@ -21,7 +21,7 @@ go 1.19
 require (
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/oauth2 v0.10.0
-	google.golang.org/api v0.129.0
+	google.golang.org/api v0.130.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -31,7 +31,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
 )
 
 require (
