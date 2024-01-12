@@ -42,7 +42,7 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.111.0
+	cloud.google.com/go v0.112.0
 	cloud.google.com/go/compute v1.23.3 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
