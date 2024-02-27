@@ -38,12 +38,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.23.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240213162025-012b6fc9bca9 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240221002015-b0ce06bbee7c // indirect
 )
 
 require (
-	cloud.google.com/go v0.112.0
-	cloud.google.com/go/compute v1.23.4 // indirect
+	cloud.google.com/go v0.112.1
+	cloud.google.com/go/compute v1.24.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
