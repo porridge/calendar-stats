@@ -5,7 +5,7 @@ updates:
 - package-ecosystem: "gomod"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: "monthly"
   labels:
   - "auto-merge"
 - package-ecosystem: "github-actions"
