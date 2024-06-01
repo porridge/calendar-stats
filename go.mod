@@ -16,7 +16,7 @@
 
 module github.com/porridge/calendar-stats
 
-go 1.19
+go 1.21
 
 require (
 	github.com/snabb/isoweek v1.0.3
