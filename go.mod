@@ -21,12 +21,12 @@ go 1.21
 require (
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/oauth2 v0.21.0
-	google.golang.org/api v0.182.0
+	google.golang.org/api v0.183.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	cloud.google.com/go/auth v0.4.2 // indirect
+	cloud.google.com/go/auth v0.5.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -40,11 +40,11 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240521202816-d264139d666e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240604185151-ef581f913117 // indirect
 )
 
 require (
-	cloud.google.com/go v0.114.0
+	cloud.google.com/go v0.115.0
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
