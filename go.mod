@@ -53,7 +53,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/stretchr/testify v1.10.0
-	github.com/xyproto/randomstring v1.0.5
+	github.com/xyproto/randomstring v1.2.0
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
