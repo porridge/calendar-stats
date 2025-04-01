@@ -18,11 +18,11 @@ module github.com/porridge/calendar-stats
 
 go 1.23.0
 
-toolchain go1.23.6
+toolchain go1.24.1
 
 require (
 	github.com/snabb/isoweek v1.0.3
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.28.0
 	google.golang.org/api v0.223.0
 	gopkg.in/yaml.v3 v3.0.1
 )
