@@ -38,7 +38,7 @@ type thing struct {
 	newDay *civil.Date
 }
 
-func ComputeTotals(events []*calendar.Event, categories []*Category, location *time.Location) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
+func ComputeTotals(events []*calendar.Event, categories []*Category, location *time.Location) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, map[CategoryName][]string, []*calendar.Event) {
 	moments := computeTimeline(events, location)
 	return categorizeTime(moments, categories)
 }
@@ -126,10 +126,11 @@ func stretchSpeedyMeetings(evStart, evEnd time.Time) (time.Time, time.Time) {
 
 // categorizeTime returns three values. A map from civil date to time spent on it,
 // a map from category name to time spent on it, and a slice of unrecognized calendar events.
-func categorizeTime(t *timeline, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, []*calendar.Event) {
+func categorizeTime(t *timeline, categories []*Category) (map[civil.Date]time.Duration, map[CategoryName]time.Duration, map[CategoryName][]string, []*calendar.Event) {
 	momentTimes := t.sortedMoments()
 	dayTotals := make(map[civil.Date]time.Duration)
 	categoryTotals := make(map[CategoryName]time.Duration)
+	categoryDetails := make(map[CategoryName][]string)
 	unrecognized := []*calendar.Event{}
 	currentTasks := newSpan(categories)
 
@@ -142,11 +143,22 @@ func categorizeTime(t *timeline, categories []*Category) (map[civil.Date]time.Du
 			case eventEnd:
 				currentTasks.eventEnd(thing.event)
 			case eventStart:
-				if ok := currentTasks.eventStart(thing.event); !ok {
+				if ok, categoryName := currentTasks.eventStart(thing.event); ok {
+					categoryDetails[categoryName] = append(categoryDetails[categoryName], summarize(thing.event))
+				} else {
 					unrecognized = append(unrecognized, thing.event)
 				}
 			}
 		}
 	}
-	return dayTotals, categoryTotals, unrecognized
+	return dayTotals, categoryTotals, categoryDetails, unrecognized
+}
+
+func summarize(event *calendar.Event) string {
+	end, endErr := time.Parse(time.RFC3339, event.End.DateTime)
+	start, startErr := time.Parse(time.RFC3339, event.Start.DateTime)
+	if endErr != nil || startErr != nil {
+		return "???? " + event.Summary
+	}
+	return end.Sub(start).Truncate(time.Minute).String() + "  " + event.Summary
 }

@@ -36,13 +36,13 @@ func (s *span) eventEnd(event *calendar.Event) {
 }
 
 // eventStart returns false if the event was not recognized to belong to a category.
-func (s *span) eventStart(event *calendar.Event) bool {
+func (s *span) eventStart(event *calendar.Event) (bool, CategoryName) {
 	for _, aCategory := range s.categories {
 		if aCategory.recognizes(event) {
 			s.events[event] = aCategory.Name
-			return true
+			return true, aCategory.Name
 		}
 	}
 	s.events[event] = Uncategorized
-	return false
+	return false, Uncategorized
 }

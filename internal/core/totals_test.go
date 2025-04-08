@@ -141,7 +141,8 @@ func TestComputeTotals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTotals, gotCategories, gotUnrecognized := ComputeTotals(tt.args.events, tt.args.categories, time.UTC)
+			// TODO: test category details
+			gotTotals, gotCategories, _, gotUnrecognized := ComputeTotals(tt.args.events, tt.args.categories, time.UTC)
 			assert.Equal(t, tt.wantTotals, gotTotals)
 			if tt.wantCategories != nil {
 				assert.Equal(t, tt.wantCategories, gotCategories)

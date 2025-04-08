@@ -58,6 +58,7 @@ func main() {
 		"If file does not exist, it will be created and fetched events will be stored there. "+
 		"Otherwise, events will be loaded from this file rather than fetched from Google Calendar.")
 	decimalOutput := flag.Bool("decimal-output", false, "If true, print daily totals as decimal fractions rather than XhYmZs Duration format.")
+	classificationDetails := flag.Bool("classification-details", false, "If true, print to which category each event was classified.")
 	correctionsFileName := flag.String("corrections", "", "Name of file to: apply event summary corrections from at start, and save unrecognized events to at the end.")
 
 	flags.Parse(notice)
@@ -86,7 +87,7 @@ func main() {
 		log.Fatalf("Could not read config file %q: %s", *configFile, err)
 	}
 
-	unrecognized := analyzeAndPrint(events, categories, *decimalOutput)
+	unrecognized := analyzeAndPrint(events, categories, *decimalOutput, *classificationDetails)
 
 	if *correctionsFileName != "" {
 		err = io.SaveUnrecognized(*correctionsFileName, unrecognized)
@@ -96,8 +97,8 @@ func main() {
 	}
 }
 
-func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, decimalOutput bool) []*calendar.Event {
-	dayTotals, categoryTotals, unrecognized := core.ComputeTotals(events, categories, time.Local)
+func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, decimalOutput bool, classificationDetails bool) []*calendar.Event {
+	dayTotals, categoryTotals, categoryDetails, unrecognized := core.ComputeTotals(events, categories, time.Local)
 	days := ordererd.KeysOfMap(dayTotals, ordererd.CivilDates)
 	var total time.Duration
 	if len(days) > 0 {
@@ -120,6 +121,11 @@ func analyzeAndPrint(events []*calendar.Event, categories []*core.Category, deci
 			catName = "(uncategorized)"
 		}
 		fmt.Printf("%4.1f%% %s\n", fraction, catName)
+		if classificationDetails {
+			for _, eventSummary := range categoryDetails[catName] {
+				fmt.Println(" -", eventSummary)
+			}
+		}
 	}
 	if len(unrecognized) > 0 {
 		fmt.Println("Unrecognized:")
