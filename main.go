@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/porridge/calendar-stats/internal/config"
@@ -89,6 +91,7 @@ func main() {
 	unrecognized := analyzeAndPrint(events, categories, *decimalOutput)
 
 	if *correctionsFileName != "" {
+		sort.Slice(unrecognized, func(i, j int) bool { return strings.ToLower(unrecognized[i].Summary) < strings.ToLower(unrecognized[j].Summary) })
 		err = io.SaveUnrecognized(*correctionsFileName, unrecognized)
 		if err != nil {
 			log.Fatalf("Failed to save unrecognized events: %s", err)
