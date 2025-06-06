@@ -19,8 +19,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/goccy/go-yaml"
 	"google.golang.org/api/calendar/v3"
-	"gopkg.in/yaml.v3"
 )
 
 type Corrections struct {

@@ -4,8 +4,8 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/goccy/go-yaml"
 	"github.com/porridge/calendar-stats/internal/core"
-	"gopkg.in/yaml.v3"
 )
 
 type config struct {

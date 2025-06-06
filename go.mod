@@ -21,10 +21,10 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
+	github.com/goccy/go-yaml v1.18.0
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/oauth2 v0.30.0
 	google.golang.org/api v0.235.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -44,6 +44,7 @@ require (
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250512202823-5a2f75b736a9 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
