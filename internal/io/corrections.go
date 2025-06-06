@@ -28,8 +28,8 @@ type Corrections struct {
 }
 
 type Correction struct {
-	Id        string `yaml:"id"`
 	Summary   string `yaml:"summary"`
+	Id        string `yaml:"id"`
 	Organizer string `yaml:"organizer"`
 }
 

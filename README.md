@@ -100,8 +100,8 @@ corrections.yaml`, the following file will be created:
 
 ```yaml
 corrections:
-    - id: 2lb6peh9kscthpiaen2jidjemj
-      summary: reaad mail
+    - summary: reaad mail
+      id: 2lb6peh9kscthpiaen2jidjemj
       organizer: Marcin Owsiany
 ```
 
