@@ -24,7 +24,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/oauth2 v0.30.0
-	google.golang.org/api v0.244.0
+	google.golang.org/api v0.246.0
 )
 
 require (
@@ -43,12 +43,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250728155136-f173205681a0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
-	cloud.google.com/go v0.121.4
+	cloud.google.com/go v0.121.6
 	cloud.google.com/go/compute/metadata v0.7.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/google/uuid v1.6.0 // indirect
@@ -59,5 +59,5 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/grpc v1.74.2 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.7 // indirect
 )
