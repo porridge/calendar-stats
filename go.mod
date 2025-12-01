@@ -21,7 +21,7 @@ go 1.24.0
 toolchain go1.24.1
 
 require (
-	github.com/goccy/go-yaml v1.18.0
+	github.com/goccy/go-yaml v1.19.0
 	github.com/snabb/isoweek v1.0.3
 	golang.org/x/oauth2 v0.32.0
 	google.golang.org/api v0.254.0
