@@ -23,7 +23,7 @@ toolchain go1.24.1
 require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/snabb/isoweek v1.0.3
-	golang.org/x/oauth2 v0.34.0
+	golang.org/x/oauth2 v0.35.0
 	google.golang.org/api v0.264.0
 )
 
