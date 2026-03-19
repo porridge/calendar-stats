@@ -1,18 +1,29 @@
-name: Auto Merge Dependabot PRs
+name: auto-merge
 
 on:
-  pull_request_target:
-    types:
-    - labeled
+  schedule:
+    - cron: '13 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge
+  cancel-in-progress: false
 
 jobs:
   auto-merge:
+    name: Enable auto-merge for eligible PRs
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' && github.event.label.name == 'auto-merge'
+    if: github.repository_owner == 'porridge'
+
     steps:
-    - uses: ahmadnassri/action-dependabot-auto-merge@v2.6
-      with:
-        github-token: '${{ secrets.AUTOMERGE_TOKEN }}'
-        command: "squash and merge"
-        approve: true
-        target: minor
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run auto-merge action
+        uses: stackrox/actions/automerge@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
