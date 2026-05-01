@@ -45,8 +45,8 @@ github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJ
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/scylladb/termtables v0.0.0-20191203121021-c4c0b6d42ff4/go.mod h1:C1a7PQSMz9NShzorzCiG2fk9+xuCgLkPeCvMHYR2OWg=
-github.com/snabb/isoweek v1.0.3 h1:BwEULUhj7UToLLa7FivDTLzA4y1epTYkLhnn31huBRs=
-github.com/snabb/isoweek v1.0.3/go.mod h1:J5hJfY1CG56xmKCC/4XfoaWZcOiB+qntmyKEDATSnlw=
+github.com/snabb/isoweek v1.1.1 h1:94OnCwE74NMwMr4WKTLwjzSImR6wCzmaPrjnVuqgoWU=
+github.com/snabb/isoweek v1.1.1/go.mod h1:3VcRgy1SZw/ksr4UVaOhtg6HL1aYEz8Ht0mQrA19DYM=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
